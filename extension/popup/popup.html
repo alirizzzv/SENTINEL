@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>SENTINEL</title>
+  </head>
+  <body>
+    <header class="pp-header">
+      <span class="pp-brand"><span class="pp-shield">🛡</span> SENTINEL</span>
+      <span class="pp-status"><span class="pp-dot"></span> Active</span>
+    </header>
+
+    <section class="pp-section">
+      <div class="pp-label">Today</div>
+      <div class="pp-stats">
+        <div class="pp-stat">
+          <div class="pp-stat-num" id="todayScans">—</div>
+          <div class="pp-stat-cap">Scanned</div>
+        </div>
+        <div class="pp-stat">
+          <div class="pp-stat-num" id="todayThreats">—</div>
+          <div class="pp-stat-cap">Caught</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pp-section">
+      <div class="pp-streak">
+        <span class="pp-streak-emoji">🟢</span>
+        <span><b id="streak">0</b> clean prompts in a row</span>
+      </div>
+      <div class="pp-last" id="lastThreat">No threats recorded yet.</div>
+    </section>
+
+    <section class="pp-section">
+      <div class="pp-label">Protected on</div>
+      <div class="pp-llms">
+        <span class="pp-chip">✓ ChatGPT</span>
+        <span class="pp-chip">✓ Claude</span>
+        <span class="pp-chip">✓ Gemini</span>
+      </div>
+    </section>
+
+    <button class="pp-dash" id="openDashboard">Open Full Dashboard →</button>
+    <div class="pp-foot">Local-first · nothing leaves your browser</div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

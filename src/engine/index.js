@@ -95,11 +95,8 @@ export class DetectionEngine {
       if (ids) for (const id of ids) toValidate.add(id);
     }
 
-    // 3. Regex validation -> precise spans + per-pattern occurrence counts.
-    const spans = [];
-    const threatsById = new Map(); // patternId -> threat aggregate
-    let patternMatchCount = 0;
-
+    // 3. Regex validation -> raw matches with precise spans.
+    const rawMatches = [];
     for (const id of toValidate) {
       const p = this.patterns[id];
       p.regex.lastIndex = 0;
@@ -111,26 +108,49 @@ export class DetectionEngine {
           continue;
         }
         if (p.validate && !p.validate(value)) continue;
-
-        patternMatchCount += 1;
-        spans.push({
+        rawMatches.push({
+          id,
           start: match.index,
           end: match.index + value.length,
-          placeholder: p.placeholder,
+          length: value.length,
           score: p.score,
         });
-
-        if (!threatsById.has(id)) {
-          threatsById.set(id, {
-            id: p.id,
-            category: p.category,
-            label: p.label,
-            score: p.score,
-            count: 0,
-          });
-        }
-        threatsById.get(id).count += 1;
       }
+    }
+
+    // Suppress sub-matches: a span fully contained in a longer, at-least-as-severe
+    // span of a *different* pattern is an artifact (e.g. a credit card's first 12
+    // digits also matching the Aadhaar pattern). Drop it so the threat list is honest.
+    const kept = rawMatches.filter((m) => {
+      return !rawMatches.some(
+        (o) =>
+          o !== m &&
+          o.id !== m.id &&
+          o.start <= m.start &&
+          o.end >= m.end &&
+          o.length > m.length &&
+          o.score >= m.score,
+      );
+    });
+
+    // Aggregate surviving matches into spans + per-pattern threat tallies.
+    const spans = [];
+    const threatsById = new Map(); // patternId -> threat aggregate
+    let patternMatchCount = 0;
+    for (const m of kept) {
+      const p = this.patterns[m.id];
+      patternMatchCount += 1;
+      spans.push({ start: m.start, end: m.end, placeholder: p.placeholder, score: p.score });
+      if (!threatsById.has(m.id)) {
+        threatsById.set(m.id, {
+          id: p.id,
+          category: p.category,
+          label: p.label,
+          score: p.score,
+          count: 0,
+        });
+      }
+      threatsById.get(m.id).count += 1;
     }
 
     const threats = [...threatsById.values()];

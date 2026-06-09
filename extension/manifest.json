@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "SENTINEL — AI Prompt Security Gateway",
+  "version": "0.1.0",
+  "description": "Detects and redacts sensitive data and prompt-injection attacks before they reach ChatGPT, Claude, or Gemini. Local-first, private by default.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "SENTINEL"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": [
+        "vendor/engine.global.js",
+        "content/adapter-registry.js",
+        "content/interceptor-modal.js",
+        "content/content-script.js"
+      ],
+      "css": ["content/interceptor-modal.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dashboard/index.html", "dashboard/assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

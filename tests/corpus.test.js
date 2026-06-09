@@ -92,4 +92,12 @@ describe('full pipeline behaviour', () => {
   it('returns SAFE for empty input', () => {
     expect(scan('').level).toBe(RISK.SAFE);
   });
+
+  it('does not report a phantom Aadhaar inside a credit card number', () => {
+    // A 16-digit card contains a 12-digit run that the Aadhaar regex would match;
+    // the contained sub-match must be suppressed.
+    const r = scan('card 4111 1111 1111 1111');
+    expect(r.threatCategories).toContain('CREDIT_CARD');
+    expect(r.threatCategories).not.toContain('GOV_ID');
+  });
 });

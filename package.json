@@ -8,8 +8,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
-    "bench": "node --expose-gc tests/bench.js",
-    "build:dashboard": "vite build --config dashboard/vite.config.js"
+    "build:engine": "node scripts/build-engine.mjs",
+    "build:dashboard": "vite build --config dashboard/vite.config.js",
+    "build": "npm run build:engine && npm run build:dashboard"
   },
   "keywords": [
     "security",
@@ -23,6 +24,7 @@
   "author": "alirizzzv",
   "license": "MIT",
   "devDependencies": {
+    "esbuild": "^0.28.0",
     "vitest": "^2.1.8"
   }
 }
