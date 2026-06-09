@@ -1,0 +1,28 @@
+{
+  "name": "sentinel",
+  "version": "0.1.0",
+  "description": "Browser-native AI security layer — detects and redacts sensitive data and prompt-injection attacks before they reach any LLM.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "bench": "node --expose-gc tests/bench.js",
+    "build:dashboard": "vite build --config dashboard/vite.config.js"
+  },
+  "keywords": [
+    "security",
+    "llm",
+    "aho-corasick",
+    "trie",
+    "prompt-injection",
+    "chrome-extension",
+    "privacy"
+  ],
+  "author": "alirizzzv",
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  }
+}
