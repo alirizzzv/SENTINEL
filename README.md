@@ -104,12 +104,15 @@ Open `demo/index.html` in any browser (or `python3 -m http.server` and visit
 `/demo/`). Type a prompt with a fake secret, hit Enter, watch SENTINEL intercept.
 The same engine that ships in the extension runs entirely in the page.
 
-### Load the extension in Chrome
+### Install the extension (use it for real)
 
-1. `npm run build` (generates `extension/vendor/engine.global.js` + `extension/dashboard/`).
-2. Chrome → `chrome://extensions` → enable **Developer mode**.
-3. **Load unpacked** → select the `extension/` folder.
-4. Open ChatGPT / Claude / Gemini and try sending a prompt containing a secret.
+Full guide: **[INSTALL.md](INSTALL.md)**. Quick version:
+
+1. `npm install && npm run build`
+2. Chrome → `chrome://extensions` → enable **Developer mode** → **Load unpacked** → pick the `extension/` folder.
+3. Open ChatGPT / Claude / Gemini, type a prompt with a fake secret like `AKIAIOSFODNN7EXAMPLE`, press Enter — the interceptor modal appears.
+
+Prefer no terminal? Grab `sentinel-extension.zip` (built via `npm run package:ext`), unzip, and load that folder instead.
 
 ### Enterprise backend (optional)
 

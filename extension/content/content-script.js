@@ -21,6 +21,7 @@
   console.info(`${TAG} active on ${adapter.name}`);
 
   let bypassNext = false; // lets a programmatic resend through our own listener
+  let modalOpen = false; // true while the interceptor modal awaits a decision
 
   // ── element helpers ──────────────────────────────────────────────────────
   function firstVisible(selectors) {
@@ -43,26 +44,51 @@
 
   function setText(input, text) {
     if (!input) return;
-    if ('value' in input && typeof input.value === 'string') {
-      input.value = text;
-    } else {
-      input.textContent = text; // best-effort for contenteditable editors
+    input.focus();
+
+    // Native <textarea>/<input>: use the prototype value setter so React-controlled
+    // components actually register the change (plain `.value =` is ignored by React).
+    if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) {
+      const proto = input instanceof HTMLTextAreaElement
+        ? HTMLTextAreaElement.prototype
+        : HTMLInputElement.prototype;
+      const desc = Object.getOwnPropertyDescriptor(proto, 'value');
+      if (desc && desc.set) desc.set.call(input, text);
+      else input.value = text;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
     }
-    input.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+    // contenteditable (ProseMirror on ChatGPT/Claude, Quill on Gemini): selecting
+    // all + execCommand('insertText') routes through the editor's own input
+    // pipeline, which textContent assignment does not — so the value actually sticks.
+    try {
+      const sel = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(input);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      if (!document.execCommand('insertText', false, text)) throw new Error('execCommand failed');
+    } catch (e) {
+      input.textContent = text;
+      input.dispatchEvent(new InputEvent('input', { bubbles: true }));
+    }
   }
 
   function triggerSend(input) {
     bypassNext = true;
     const submit = getSubmit();
-    if (submit) {
+    if (submit && !submit.disabled) {
       submit.click();
     } else if (input) {
-      const opts = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true };
+      input.focus();
+      const opts = { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true };
       input.dispatchEvent(new KeyboardEvent('keydown', opts));
+      input.dispatchEvent(new KeyboardEvent('keypress', opts));
       input.dispatchEvent(new KeyboardEvent('keyup', opts));
     }
     // safety: clear the flag shortly after in case nothing fired
-    setTimeout(() => { bypassNext = false; }, 50);
+    setTimeout(() => { bypassNext = false; }, 80);
   }
 
   // ── persistence (metadata only) ──────────────────────────────────────────
@@ -89,6 +115,15 @@
   // ── interception core ──────────────────────────────────────────────────--
   // Returns true if the event was intercepted (caller should stop it).
   function handleSendAttempt(input, originalEvent) {
+    if (modalOpen) {
+      // A decision is already pending — never let a second send slip through.
+      if (originalEvent) {
+        originalEvent.preventDefault();
+        originalEvent.stopImmediatePropagation();
+      }
+      return true;
+    }
+
     const text = getText(input).trim();
     if (!text) return false;
 
@@ -106,11 +141,13 @@
       originalEvent.stopImmediatePropagation();
     }
 
+    modalOpen = true;
     globalThis.SENTINEL_MODAL.show({ result, llmName: adapter.name }).then((decision) => {
+      modalOpen = false;
       logEvent(result, decision);
       if (decision === 'REDACTED') {
         setText(input, result.redactedText);
-        setTimeout(() => triggerSend(input), 0);
+        setTimeout(() => triggerSend(input), 10);
       } else if (decision === 'SENT_ANYWAY') {
         triggerSend(input);
       }
