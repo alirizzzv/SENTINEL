@@ -112,7 +112,6 @@ flowchart TD
 | Redaction / overlap merge | **merge intervals** | `O(n log n)` |
 | Two-stage detection | candidate-find → validate (like grep/Elasticsearch) | — |
 
-Full write-up with interview answers & scaling notes: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 ## Performance
 
