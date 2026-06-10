@@ -24,7 +24,15 @@
   "author": "alirizzzv",
   "license": "MIT",
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
     "esbuild": "^0.28.0",
+    "vite": "^5.4.21",
     "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^18.3.1"
   }
 }

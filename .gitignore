@@ -6,9 +6,9 @@ __pycache__/
 *.pyc
 
 # Build output
+# NOTE: extension/dashboard/ and extension/vendor/engine.global.js are generated
+# (npm run build) but committed so the extension loads unpacked with no build step.
 dashboard/dist/
-extension/dashboard/assets/
-extension/dashboard/index.html
 coverage/
 
 # Local data / env
