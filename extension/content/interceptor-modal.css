@@ -1,4 +1,4 @@
-/* SENTINEL interceptor modal — scoped under .sentinel-root, dark SOC theme. */
+/* SENTINEL interceptor modal — light premium theme, pops on any LLM page. */
 
 .sentinel-root {
   position: fixed;
@@ -9,68 +9,76 @@
   max-width: calc(100vw - 32px);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   opacity: 0;
-  transform: translateY(24px) scale(0.98);
-  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: perspective(1200px) translateY(28px) rotateX(8deg) scale(0.97);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.sentinel-root.sentinel-visible { opacity: 1; transform: translateY(0) scale(1); }
-.sentinel-root.sentinel-leaving { opacity: 0; transform: translateY(24px) scale(0.98); }
+.sentinel-root.sentinel-visible { opacity: 1; transform: perspective(1200px) translateY(0) rotateX(0) scale(1); }
+.sentinel-root.sentinel-leaving { opacity: 0; transform: perspective(1200px) translateY(28px) rotateX(8deg) scale(0.97); }
 
 .sentinel-card {
-  background: #0f1623;
-  border: 1px solid #1e2d45;
-  border-radius: 16px;
+  position: relative;
+  background: #ffffff;
+  border: 1px solid rgba(28, 26, 52, 0.1);
+  border-radius: 18px;
   padding: 18px;
-  color: #e8edf5;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  color: #1b2038;
+  box-shadow: 0 30px 70px -18px rgba(40, 30, 90, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  overflow: hidden;
 }
-.sentinel-level-HIGH .sentinel-card { box-shadow: 0 0 0 1px rgba(247,79,79,0.5), 0 24px 60px rgba(247,79,79,0.18); }
-.sentinel-level-CAUTION .sentinel-card { box-shadow: 0 0 0 1px rgba(245,166,35,0.45), 0 24px 60px rgba(0,0,0,0.4); }
+/* gradient top accent bar */
+.sentinel-card::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: linear-gradient(90deg, #7c6cff, #b07cff, #ff8fb0);
+}
+.sentinel-level-HIGH .sentinel-card { box-shadow: 0 0 0 1px rgba(226, 72, 61, 0.3), 0 30px 70px -16px rgba(226, 72, 61, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.8); }
+.sentinel-level-HIGH .sentinel-card::before { background: linear-gradient(90deg, #e2483d, #b15cff); }
+.sentinel-level-CAUTION .sentinel-card::before { background: linear-gradient(90deg, #e8920c, #ff8fb0); }
 
 .sentinel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .sentinel-shield { font-size: 18px; }
-.sentinel-title { font-weight: 600; font-size: 14px; flex: 1; }
+.sentinel-title { font-weight: 700; font-size: 14px; flex: 1; }
 .sentinel-llm {
-  font-size: 11px; color: #8899aa; border: 1px solid #1e2d45;
+  font-size: 11px; color: #6b7286; border: 1px solid rgba(28, 26, 52, 0.12);
   padding: 2px 8px; border-radius: 999px;
 }
 
 .sentinel-risk { margin-bottom: 14px; }
 .sentinel-risk-label {
   font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
-  color: #8899aa; margin-bottom: 6px; font-weight: 600;
+  color: #6b7286; margin-bottom: 6px; font-weight: 700;
 }
-.sentinel-bar-track { height: 8px; background: #162030; border-radius: 999px; overflow: hidden; }
+.sentinel-bar-track { height: 8px; background: #eceaf3; border-radius: 999px; overflow: hidden; }
 .sentinel-bar-fill {
   height: 100%; border-radius: 999px;
-  background: linear-gradient(90deg, #4f8ef7, #f5a623, #f74f4f);
+  background: linear-gradient(90deg, #6d5efc, #e8920c, #e2483d);
   transition: width 0.5s ease;
 }
-.sentinel-level-SAFE .sentinel-bar-fill { background: #00d4aa; }
+.sentinel-level-SAFE .sentinel-bar-fill { background: #0fb27f; }
 
 .sentinel-threats { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .sentinel-threat {
   display: flex; align-items: center; gap: 10px;
-  background: #162030; border: 1px solid #1e2d45;
-  border-radius: 10px; padding: 8px 12px;
+  background: #f7f5f0; border: 1px solid rgba(28, 26, 52, 0.07);
+  border-radius: 11px; padding: 9px 12px;
 }
-.sentinel-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.sentinel-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 8px currentColor; }
 .sentinel-threat-label { flex: 1; font-size: 13px; }
-.sentinel-threat-count { font-size: 11px; color: #8899aa; }
+.sentinel-threat-count { font-size: 11px; color: #6b7286; }
 .sentinel-threat-score {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 12px; color: #e8edf5; opacity: 0.8;
+  font-size: 12px; color: #1b2038; opacity: 0.7;
 }
 
 .sentinel-preview-wrap { margin-bottom: 16px; }
 .sentinel-preview-label {
   font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
-  color: #8899aa; margin-bottom: 6px; font-weight: 600;
+  color: #6b7286; margin-bottom: 6px; font-weight: 700;
 }
 .sentinel-preview {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 12px; line-height: 1.5; color: #c7d2e0;
-  background: #080c14; border: 1px solid #1e2d45; border-radius: 10px;
+  font-size: 12px; line-height: 1.5; color: #2b3252;
+  background: #faf9f6; border: 1px solid rgba(28, 26, 52, 0.1); border-radius: 10px;
   padding: 10px 12px; max-height: 120px; overflow: auto; white-space: pre-wrap;
   word-break: break-word;
 }
@@ -79,14 +87,14 @@
 .sentinel-btn {
   flex: 1; border: none; border-radius: 10px; padding: 10px 12px;
   font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
-  transition: transform 0.08s ease, filter 0.15s ease;
+  transition: transform 0.08s ease, filter 0.15s ease, background 0.15s ease;
 }
 .sentinel-btn:active { transform: translateY(1px); }
-.sentinel-btn-primary { background: #4f8ef7; color: #fff; }
-.sentinel-btn-primary:hover { filter: brightness(1.08); }
-.sentinel-btn-warning { background: transparent; color: #f5a623; border: 1px solid #f5a623; }
-.sentinel-btn-warning:hover { background: rgba(245,166,35,0.1); }
-.sentinel-btn-ghost { background: transparent; color: #8899aa; border: 1px solid #1e2d45; flex: 0 0 auto; padding-inline: 16px; }
-.sentinel-btn-ghost:hover { color: #e8edf5; }
+.sentinel-btn-primary { background: linear-gradient(135deg, #7c6cff, #b07cff); color: #fff; box-shadow: 0 10px 24px -8px rgba(124, 108, 255, 0.8); }
+.sentinel-btn-primary:hover { filter: brightness(1.05); }
+.sentinel-btn-warning { background: transparent; color: #d97a06; border: 1px solid #e8920c; }
+.sentinel-btn-warning:hover { background: rgba(232, 146, 12, 0.1); }
+.sentinel-btn-ghost { background: transparent; color: #6b7286; border: 1px solid rgba(28, 26, 52, 0.14); flex: 0 0 auto; padding-inline: 16px; }
+.sentinel-btn-ghost:hover { color: #1b2038; background: #f2f0ea; }
 
-.sentinel-note { margin-top: 10px; font-size: 11px; color: #8899aa; text-align: center; }
+.sentinel-note { margin-top: 10px; font-size: 11px; color: #6b7286; text-align: center; }

@@ -10,7 +10,7 @@ const TABS = ['Overview', 'History', 'Settings'];
 export default function App() {
   const [tab, setTab] = useState('Overview');
   const [events, setEvents] = useState([]);
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
 
   const reload = useCallback(() => {
     getEvents().then(setEvents);
@@ -21,6 +21,11 @@ export default function App() {
 
   return (
     <>
+      <div className="aurora" aria-hidden>
+        <span className="a1" />
+        <span className="a2" />
+        <span className="a3" />
+      </div>
       <Background3D />
       <div className="app">
         <div className="topbar">

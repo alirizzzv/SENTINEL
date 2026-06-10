@@ -10,17 +10,19 @@ import {
   Filler,
 } from 'chart.js';
 import RiskBadge from './RiskBadge.jsx';
+import Tilt from './Tilt.jsx';
 import { computeStats, riskTrend, threatBreakdown } from '../data.js';
 
 Chart.register(LineElement, PointElement, LinearScale, CategoryScale, ArcElement, Tooltip, Filler);
 
-function StatCard({ num, cap, sub }) {
+function StatCard({ icon, accent, num, cap, sub }) {
   return (
-    <div className="card stat">
+    <Tilt className="card stat">
+      <div className={`icon ${accent}`}>{icon}</div>
       <div className="num">{num}</div>
       <div className="cap">{cap}</div>
       {sub && <div className="sub">{sub}</div>}
-    </div>
+    </Tilt>
   );
 }
 
@@ -43,20 +45,20 @@ export default function Overview({ events }) {
     datasets: [
       {
         data: trend.map((t) => t.value),
-        borderColor: '#4f8ef7',
-        backgroundColor: 'rgba(79,142,247,0.12)',
+        borderColor: '#7c6cff',
+        backgroundColor: 'rgba(124,108,255,0.14)',
         fill: true,
         tension: 0.35,
         pointRadius: 0,
-        borderWidth: 2,
+        borderWidth: 2.5,
       },
     ],
   };
   const lineOpts = {
     plugins: { legend: { display: false } },
     scales: {
-      x: { grid: { display: false }, ticks: { color: '#8899aa', maxTicksLimit: 8, font: { size: 10 } } },
-      y: { grid: { color: 'rgba(136,153,170,0.1)' }, ticks: { color: '#8899aa', font: { size: 10 } }, min: 0, max: 100 },
+      x: { grid: { display: false }, ticks: { color: '#6b7286', maxTicksLimit: 8, font: { size: 10 } } },
+      y: { grid: { color: 'rgba(27,32,56,0.08)' }, ticks: { color: '#6b7286', font: { size: 10 } }, min: 0, max: 100 },
     },
     maintainAspectRatio: false,
   };
@@ -67,7 +69,7 @@ export default function Overview({ events }) {
       {
         data: breakdown.map((b) => b.count),
         backgroundColor: breakdown.map((b) => b.color),
-        borderColor: '#0f1623',
+        borderColor: 'rgba(255,255,255,0.85)',
         borderWidth: 2,
       },
     ],
@@ -76,12 +78,15 @@ export default function Overview({ events }) {
 
   return (
     <div className="page">
-      <div className="section-title">Overview</div>
+      <div className="hero">
+        <h1>Security overview</h1>
+        <p>Every prompt scanned before it leaves your browser — sensitive data and injection attacks caught in real time, nothing stored but anonymized metadata.</p>
+      </div>
       <div className="grid-4">
-        <StatCard num={stats.total} cap="Prompts Scanned" sub="all time" />
-        <StatCard num={stats.threatsCaught} cap="Threats Caught" />
-        <StatCard num={`${stats.redactionRate}%`} cap="Redaction Rate" sub="of threats redacted" />
-        <StatCard num={stats.cleanStreak} cap="Clean Streak" sub="consecutive safe" />
+        <StatCard icon="🛡" accent="g1" num={stats.total} cap="Prompts Scanned" sub="all time" />
+        <StatCard icon="🚨" accent="g2" num={stats.threatsCaught} cap="Threats Caught" />
+        <StatCard icon="✂" accent="g3" num={`${stats.redactionRate}%`} cap="Redaction Rate" sub="of threats redacted" />
+        <StatCard icon="🔥" accent="g4" num={stats.cleanStreak} cap="Clean Streak" sub="consecutive safe" />
       </div>
 
       <div className="grid-2 mt">

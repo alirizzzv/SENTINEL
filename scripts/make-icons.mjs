@@ -95,11 +95,11 @@ function render(size) {
       const nx = ((x - pad) / sw) * 2 - 1;
       const ny = (y - pad) / sw;
       if (shieldInside(nx, ny)) {
-        // inner highlight band
+        // white shield with a soft violet inner band
         const inner = shieldInside(nx * 1.0, ny) && Math.abs(nx) < 0.18 && ny > 0.2 && ny < 0.78;
-        set(x, y, inner ? [232, 237, 245, 255] : [79, 142, 247, 255]);
+        set(x, y, inner ? [176, 124, 255, 255] : [255, 255, 255, 255]);
       } else {
-        set(x, y, [8, 12, 20, 255]); // navy tile
+        set(x, y, [124, 108, 255, 255]); // violet tile
       }
     }
   }

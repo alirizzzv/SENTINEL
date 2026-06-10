@@ -47,7 +47,7 @@ export default function Background3D() {
           const dy = nodes[i].y - nodes[j].y;
           const d = Math.hypot(dx, dy);
           if (d < 150) {
-            ctx.strokeStyle = `rgba(79,142,247,${0.05 * (1 - d / 150)})`;
+            ctx.strokeStyle = `rgba(124,108,255,${0.09 * (1 - d / 150)})`;
             ctx.beginPath();
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
@@ -57,7 +57,7 @@ export default function Background3D() {
       }
       // nodes
       for (const n of nodes) {
-        ctx.fillStyle = 'rgba(79,142,247,0.18)';
+        ctx.fillStyle = 'rgba(124,108,255,0.28)';
         ctx.beginPath();
         ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
         ctx.fill();

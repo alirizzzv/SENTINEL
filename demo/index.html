@@ -7,32 +7,38 @@
     <link rel="stylesheet" href="../extension/content/interceptor-modal.css" />
     <style>
       :root {
-        --bg: #080c14; --card: #0f1623; --elev: #162030; --border: #1e2d45;
-        --primary: #4f8ef7; --safe: #00d4aa; --text: #e8edf5; --muted: #8899aa;
+        --bg: #f3f0e9; --card: #ffffff; --elev: #f1eee6; --border: rgba(28,26,52,0.1);
+        --primary: #6d5efc; --safe: #0fb27f; --text: #1b2038; --muted: #6b7286;
       }
       * { box-sizing: border-box; }
-      body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
-      .wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 120px; }
-      h1 { font-size: 22px; margin: 0 0 4px; }
-      h1 .s { color: var(--primary); }
+      body { margin: 0; background: radial-gradient(1100px 600px at 82% -12%, #ffe3cf, transparent 55%), radial-gradient(900px 520px at 8% -6%, #e3dcff, transparent 55%), var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
+      .aurora { position: fixed; inset: -20% -10% 0 -10%; z-index: 0; pointer-events: none; filter: blur(80px); opacity: 0.5; }
+      .aurora span { position: absolute; border-radius: 50%; mix-blend-mode: multiply; }
+      .aurora .a1 { width: 44vw; height: 44vw; left: -6vw; top: -8vw; background: radial-gradient(circle, #c9b8ff, transparent 66%); }
+      .aurora .a2 { width: 40vw; height: 40vw; right: -6vw; top: -4vw; background: radial-gradient(circle, #ffc6a8, transparent 66%); }
+      .aurora .a3 { width: 36vw; height: 36vw; left: 35vw; top: 30vh; background: radial-gradient(circle, #aef0d8, transparent 70%); opacity: 0.7; }
+      .wrap { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 40px 20px 120px; }
+      h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.02em; font-weight: 800; }
+      h1 .s { background: linear-gradient(120deg, #1b2038, #6d5efc 65%, #b15cff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
       .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
       .note { font-size: 12px; color: var(--muted); background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 20px; }
       .samples { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
       .samples button { background: var(--elev); color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-family: inherit; }
       .samples button:hover { border-color: var(--primary); }
-      .chat { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+      .chat { background: #ffffff; border: 1px solid var(--border); border-radius: 18px; padding: 16px; box-shadow: 0 22px 44px -24px rgba(70,60,130,0.4), inset 0 1px 0 rgba(255,255,255,0.6); }
       .bubbles { display: flex; flex-direction: column; gap: 10px; min-height: 80px; margin-bottom: 14px; }
       .bubble { align-self: flex-end; max-width: 80%; background: var(--primary); color: #fff; padding: 10px 14px; border-radius: 14px 14px 4px 14px; font-size: 14px; white-space: pre-wrap; word-break: break-word; }
       .bubble.sys { align-self: flex-start; background: var(--elev); color: var(--muted); border-radius: 14px 14px 14px 4px; }
       .composer { display: flex; gap: 10px; }
-      textarea { flex: 1; resize: vertical; min-height: 60px; background: #080c14; color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-family: inherit; font-size: 14px; }
-      .send { background: var(--primary); color: #fff; border: none; border-radius: 12px; padding: 0 20px; font-weight: 600; cursor: pointer; font-family: inherit; }
+      textarea { flex: 1; resize: vertical; min-height: 60px; background: #faf9f6; color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-family: inherit; font-size: 14px; }
+      .send { background: linear-gradient(135deg, #7c6cff, #b07cff); color: #fff; border: none; border-radius: 12px; padding: 0 20px; font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 10px 24px -8px rgba(124,108,255,0.8); }
       .send:hover { filter: brightness(1.08); }
       .meta { margin-top: 16px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--muted); background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; white-space: pre-wrap; }
       kbd { background: var(--elev); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 11px; }
     </style>
   </head>
   <body>
+    <div class="aurora" aria-hidden><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>
     <div class="wrap">
       <h1><span class="s">🛡 SENTINEL</span> — Offline Demo</h1>
       <div class="sub">The same detection engine that ships in the extension, running entirely in this page.</div>
