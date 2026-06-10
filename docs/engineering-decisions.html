@@ -55,6 +55,13 @@
   .small{font-size:9.2pt;color:var(--muted)}
   .pagebreak{page-break-before:always}
   .note{background:#f7f5ff;border:1px solid #e6e0fb;border-radius:8px;padding:10px 12px;font-size:9.6pt;margin:10px 0}
+  .qa{border:1px solid var(--line);border-radius:9px;padding:11px 14px;margin:10px 0;page-break-inside:avoid;background:#fff}
+  .qa .q{font-weight:800;font-size:10.4pt;color:var(--ink)}
+  .qa .q::before{content:"Q";display:inline-block;background:var(--violet);color:#fff;font-size:8pt;
+    width:16px;height:16px;line-height:16px;text-align:center;border-radius:5px;margin-right:7px;vertical-align:1px}
+  .qa .a{font-size:9.7pt;color:#2b3252;margin-top:5px}
+  .qa .a::before{content:"A";display:inline-block;background:#eceaf3;color:var(--violet);font-weight:800;font-size:8pt;
+    width:16px;height:16px;line-height:16px;text-align:center;border-radius:5px;margin-right:7px;vertical-align:1px}
 </style>
 </head>
 <body>
@@ -487,6 +494,75 @@
   <tr><td>Delivery</td><td>CI/CD on GitHub Actions, live Pages deploy, packaged extension, containerized backend, thorough docs.</td></tr>
   <tr><td>Judgment</td><td>Framework where it pays, none where it doesn't; warn-don't-block UX; privacy by construction.</td></tr>
 </table>
+
+<!-- ───────────────────────── 9. INTERVIEW Q&A ───────────────────────── -->
+<h2 class="section pagebreak">9 · Anticipated interview questions &amp; answers</h2>
+<p class="small">The questions a skeptical interviewer is most likely to ask — and crisp answers grounded in the build.</p>
+
+<div class="qa">
+  <div class="q">Explain Aho-Corasick.</div>
+  <div class="a">Insert all patterns into a trie, then add <i>failure links</i> via BFS — each node points to the longest proper suffix of its path that's also a prefix in the trie. Output links merge so each node reports every pattern that ends at it or any failure-reachable node. Scanning walks the text once; on a mismatch you follow the failure link instead of restarting. It's a DFA, so total time is <code>O(n + m + z)</code> — text + patterns + matches — independent of how many patterns there are.</div>
+</div>
+
+<div class="qa">
+  <div class="q">Why not just use regex for everything?</div>
+  <div class="a">Three reasons. Performance: 20 sequential regexes are <code>O(k·n)</code>; Aho-Corasick is <code>O(n)</code> regardless of pattern count. Safety: regex backtracking can blow up (catastrophic ReDoS) on adversarial input and hang the tab — a DFA never backtracks. Composition: a trie shares prefix work across patterns. I still use regex as the <i>second</i> stage to validate the exact structure of candidates the automaton flags.</div>
+</div>
+
+<div class="qa">
+  <div class="q">Why a browser extension instead of a website or API?</div>
+  <div class="a">Behavior. A website needs the user to copy → paste → check → paste back; nobody does that consistently. An extension intercepts at the exact moment of sending with zero habit change, works across every LLM with one install, and runs on the user's machine so it's private by construction.</div>
+</div>
+
+<div class="qa">
+  <div class="q">How do you know detection actually works? How is it tested?</div>
+  <div class="a">91 automated tests: unit tests for the trie/automaton/heap/redactor; a <i>corpus</i> of known-positive prompts (must flag) and known-negative prompts (must stay safe) as a false-positive guard; an <i>adversarial</i> suite (ReDoS, obfuscation, dev-text false-positive sweep); IndexedDB tests via fake-indexeddb; and a performance benchmark. CI runs all of it on every push. The corpus already caught a real bug — a UUID segment matching the Aadhaar pattern — which I fixed and regression-locked.</div>
+</div>
+
+<div class="qa">
+  <div class="q">What was the hardest engineering problem?</div>
+  <div class="a">Reliable interception across three different editors while keeping detection synchronous. <code>preventDefault()</code> must run synchronously to stop a send, so the engine can't be an async call to the background worker — I bundle it into the content script with esbuild so it runs in-page. Then redaction has to actually "stick" in rich editors: I use the native value setter for React textareas and <code>execCommand('insertText')</code> for ProseMirror/Quill contenteditable, which route through the editor's own input pipeline.</div>
+</div>
+
+<div class="qa">
+  <div class="q">You claim you never store prompt content — prove it.</div>
+  <div class="a">The extension requests only <code>storage</code> plus the three LLM hosts — no broad host permissions — so the browser itself prevents exfiltration. There are zero network requests on the scan path (verifiable in DevTools → Network). Only anonymized metadata (timestamp, LLM, risk level/score, threat <i>categories</i>, decision, timing) goes into a local 500-event ring buffer. The source is open and auditable.</div>
+</div>
+
+<div class="qa">
+  <div class="q">How do you keep false positives down?</div>
+  <div class="a">A false positive that blocks a legitimate prompt trains users to disable the tool — worse than a missed detection. So: a Luhn check on card-shaped numbers, lookarounds so IDs/UUIDs don't masquerade as Aadhaar, sub-match suppression for contained overlaps, and — for injection — a confidence score that requires multiple signals before flagging (one weak signal like "act as a…" never fires). And we never hard-block; the user always decides.</div>
+</div>
+
+<div class="qa">
+  <div class="q">What happens when two detected spans overlap?</div>
+  <div class="a">Classic merge-intervals: sort spans by start, sweep once merging overlaps, keep the higher-severity placeholder on a collision, then rebuild the string in a single slice pass — <code>O(n log n)</code>. For scoring, a span fully contained in a longer, equally/more severe span of a different pattern is dropped so we don't double-count.</div>
+</div>
+
+<div class="qa">
+  <div class="q">How would you scale this to a million users?</div>
+  <div class="a">Detection scales for free — it's a million parallel in-browser engines, zero server load. Only the optional enterprise backend scales: horizontal FastAPI behind a load balancer, shard <code>sync_events</code> by <code>org_id</code>, a read replica for analytics, and TimescaleDB for the time-series trend data. Every query is already org-scoped and index-backed.</div>
+</div>
+
+<div class="qa">
+  <div class="q">Patterns ship with the extension — how do you update them instantly?</div>
+  <div class="a">Today a pattern change needs a new release (Web Store review = days). The fix is a CDN-hosted JSON pattern registry the extension fetches on startup and caches in IndexedDB, with the bundled dictionary as an offline fallback — giving minute-level updates without a release.</div>
+</div>
+
+<div class="qa">
+  <div class="q">What's your threat model — and how do you prevent the extension itself being the risk?</div>
+  <div class="a">Three actors: the accidental insider (primary), the attacker crafting injections, and the LLM provider using data for training. We're a guardrail, not a wall — a determined insider can disable any extension. The extension protects itself by design: no server to exfiltrate to, least-privilege permissions, MV3's CSP (no eval), and open source for audit.</div>
+</div>
+
+<div class="qa">
+  <div class="q">Why Python for the backend but JavaScript for the engine?</div>
+  <div class="a">JS is the only language that runs inside a browser content script, and plain JS keeps the hot path dependency-free while still being testable in Node. The backend is an optional analytics service where FastAPI's async model, automatic OpenAPI docs, and Pydantic validation make it the fastest path to a correct, documented API — so I used the best tool per layer rather than forcing one language everywhere.</div>
+</div>
+
+<div class="qa">
+  <div class="q">What would you improve with more time?</div>
+  <div class="a">An ML layer for semantic/obfuscated injection detection, Playwright tests running daily against the live LLM sites to catch selector drift, the remote pattern registry for instant updates, and Firefox support. These are documented in the limitations section, not hidden.</div>
+</div>
 
 <div class="note" style="margin-top:18px">
   <b>In one line:</b> SENTINEL is a from-scratch, test-driven, security-focused full-stack system that
