@@ -26,6 +26,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.7.0",
     "esbuild": "^0.28.0",
+    "fake-indexeddb": "^6.2.5",
     "vite": "^5.4.21",
     "vitest": "^2.1.8"
   },

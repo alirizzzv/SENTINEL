@@ -75,7 +75,7 @@ export async function addEvent(payload) {
 
   const event = {
     id: uuid(),
-    timestamp: Date.now(),
+    timestamp: payload.timestamp || Date.now(),
     llm: payload.llm,
     riskLevel: payload.riskLevel,
     riskScore: payload.riskScore,
