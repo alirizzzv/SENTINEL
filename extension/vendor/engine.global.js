@@ -317,8 +317,10 @@ var SENTINEL = (() => {
       placeholder: "[AADHAAR]",
       candidates: [],
       alwaysScan: true,
-      // 12 digits, first not 0/1, optionally space-grouped
-      regex: /\b[2-9]\d{3}\s?\d{4}\s?\d{4}\b/g
+      // 12 digits, first not 0/1, optionally space-grouped. The lookbehind/ahead
+      // exclude word chars AND hyphens so we don't fire on a UUID segment
+      // (e.g. ...-446655440000) or a longer alphanumeric token.
+      regex: /(?<![\w-])[2-9]\d{3}\s?\d{4}\s?\d{4}(?![\w-])/g
     },
     {
       id: "US_SSN",

@@ -9,6 +9,7 @@ __pycache__/
 # NOTE: extension/dashboard/ and extension/vendor/engine.global.js are generated
 # (npm run build) but committed so the extension loads unpacked with no build step.
 dashboard/dist/
+public/
 coverage/
 
 # Local data / env

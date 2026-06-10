@@ -8,9 +8,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
+    "bench": "node tests/bench.js",
     "build:engine": "node scripts/build-engine.mjs",
     "build:dashboard": "vite build --config dashboard/vite.config.js",
-    "build": "npm run build:engine && npm run build:dashboard"
+    "build": "npm run build:engine && npm run build:dashboard",
+    "build:site": "node scripts/build-site.mjs",
+    "package:ext": "npm run build && cd extension && zip -r -q -X ../sentinel-extension.zip . -x '*.DS_Store' && cd .. && echo 'packaged sentinel-extension.zip'"
   },
   "keywords": [
     "security",

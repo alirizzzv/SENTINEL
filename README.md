@@ -70,6 +70,26 @@ Built in phases — see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the f
 - [x] Phase 4 — Enterprise backend (FastAPI + Postgres/SQLite)
 - [x] Phase 5 — Docs & polish
 
+## Live demo
+
+A static build (landing + interactive demo + dashboard) auto-deploys to GitHub Pages
+on every push:
+
+**https://alirizzzv.github.io/SENTINEL/**
+
+## Performance
+
+Hand-built Aho-Corasick keeps detection linear and fast (`npm run bench`, Node 25):
+
+| Prompt | Size | p50 | p99 |
+|--------|------|-----|-----|
+| typical prompt | ~50 B | 0.002 ms | 0.01 ms |
+| realistic mixed | ~1 KB | 0.023 ms | 0.045 ms |
+| large document | ~10 KB | 0.26 ms | 0.38 ms |
+| adversarial near-miss | ~80 KB | 2.36 ms | 2.62 ms |
+
+No catastrophic backtracking — an 80 KB pathological input still scans in ~2.4 ms.
+
 ## Quick start
 
 ```bash
