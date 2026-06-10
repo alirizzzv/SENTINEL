@@ -62,20 +62,50 @@ after the leak. SENTINEL intercepts **before** the prompt is sent.
 
 ## Project status
 
-Built in phases — see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the deep dive.
+Built in phases — see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full deep dive.
 
-- [x] Phase 1 — Detection engine + tests
-- [ ] Phase 2 — Chrome extension (MV3)
-- [ ] Phase 3 — Popup + dashboard
-- [ ] Phase 4 — Enterprise backend
-- [ ] Phase 5 — Polish & deploy
+- [x] Phase 1 — Detection engine + tests (Trie, Aho-Corasick, scorer, injection, redactor)
+- [x] Phase 2 — Chrome extension (MV3) + offline demo harness
+- [x] Phase 3 — Popup + React/Vite dashboard
+- [x] Phase 4 — Enterprise backend (FastAPI + Postgres/SQLite)
+- [x] Phase 5 — Docs & polish
 
-## Development
+## Quick start
 
 ```bash
-npm install      # install dev deps (vitest)
-npm test         # run the full engine test suite
-npm run test:cov # with coverage
+npm install        # dev deps
+npm test           # 61 engine tests (Vitest)
+npm run build      # bundle engine (esbuild) + dashboard (Vite) into extension/
+```
+
+### Try it in 10 seconds — offline demo
+
+Open `demo/index.html` in any browser (or `python3 -m http.server` and visit
+`/demo/`). Type a prompt with a fake secret, hit Enter, watch SENTINEL intercept.
+The same engine that ships in the extension runs entirely in the page.
+
+### Load the extension in Chrome
+
+1. `npm run build` (generates `extension/vendor/engine.global.js` + `extension/dashboard/`).
+2. Chrome → `chrome://extensions` → enable **Developer mode**.
+3. **Load unpacked** → select the `extension/` folder.
+4. Open ChatGPT / Claude / Gemini and try sending a prompt containing a secret.
+
+### Enterprise backend (optional)
+
+See [`backend/README.md`](backend/README.md). Runs on SQLite with zero setup;
+point `DATABASE_URL` at Postgres for production.
+
+## Repository layout
+
+```
+src/engine/    framework-free detection engine (the heart) — unit tested
+tests/         Vitest suite incl. positive/negative corpus
+extension/     Manifest V3 extension (content script, worker, popup, modal, dashboard build)
+dashboard/     React + Vite source (builds into extension/dashboard/)
+backend/       FastAPI enterprise API (optional)
+demo/          self-contained offline harness
+docs/          ARCHITECTURE.md deep dive
 ```
 
 ## License
