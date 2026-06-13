@@ -122,15 +122,19 @@ leetspeak/homoglyph obfuscation from sneaking attacks past the injection detecto
 
 ## Performance
 
-`npm run bench` (Node 25) — Aho-Corasick keeps detection **linear**, so there's no catastrophic
-backtracking even on adversarial input:
+`npm run bench` (Node 25) — every stage is linear (Aho-Corasick + length-bounded regexes), so
+there's no catastrophic backtracking even on adversarial input. Real prompts are sub-millisecond:
 
-| Prompt | Size | p50 | p99 |
-|--------|------|-----|-----|
-| typical prompt | ~50 B | **0.002 ms** | 0.01 ms |
-| realistic mixed | ~1 KB | 0.023 ms | 0.045 ms |
-| large document | ~10 KB | 0.26 ms | 0.38 ms |
-| adversarial near-miss | ~80 KB | **2.4 ms** | 2.6 ms |
+| Prompt | Size | p50 | p95 | p99 |
+|--------|------|-----|-----|-----|
+| typical safe prompt | ~40 B | **0.002 ms** | 0.003 ms | 0.009 ms |
+| typical threat | ~60 B | 0.004 ms | 0.006 ms | 0.012 ms |
+| realistic mixed | ~1 KB | 0.041 ms | 0.052 ms | 0.060 ms |
+| large document | ~10 KB | 0.44 ms | 0.56 ms | 0.71 ms |
+| adversarial stress | ~80 KB | 15.3 ms | 16.4 ms | 17.9 ms |
+
+The ~80 KB row is a deliberate stress test (≈13k words of pathological near-miss input); a normal
+prompt stays in the microsecond range.
 
 ## Features
 
@@ -220,30 +224,6 @@ npm run build       # engine bundle (esbuild) + dashboard (Vite)
 npm run package:ext # -> sentinel-extension.zip  (macOS/Linux — needs the `zip` CLI; Windows: see INSTALL.md)
 cd backend && pip install -r requirements.txt && pytest -q   # 7 backend tests
 ```
-
-## Limitations & future work
-
-Detection is **layered and deterministic** — format anchors → entropy → decode-and-rescan →
-normalization → context scoring. I know exactly where the walls are, by design:
-
-- **No semantic / intent understanding.** Injection phrased indirectly or "sarcastically"
-  (no trigger words, no override grammar) is not caught — that needs an ML classifier, which
-  is deliberate **future work**, not a regex problem.
-- **Injection detection is heuristic.** Normalization closes the obfuscation bypass (leetspeak,
-  homoglyphs), but a sufficiently novel paraphrase can still score below threshold. The
-  confidence model trades a little recall for far fewer false positives ("one weak signal isn't
-  enough").
-- **Entropy detection is context-gated.** A high-entropy secret with *no* assignment and *no*
-  nearby keyword (a bare token on its own line) can still slip — the gate is what keeps false
-  positives near zero, and it's a conscious recall/precision tradeoff.
-- **Adapter selectors can drift.** Interception depends on each LLM site's DOM; a major redesign
-  can require a one-line selector update in `adapter-registry.js`.
-- **The user is the final layer.** SENTINEL is a guardrail, not an enforced control — "Send
-  Anyway" always exists. That's intentional: it warns and informs, it doesn't lock you out.
-
-**Roadmap:** a small local injection classifier (measured precision/recall vs. the heuristic
-baseline) · broader catalog (Azure, GCP, GitLab) · an adapter self-test/heartbeat that flags when
-a site redesign has broken interception.
 
 ## License
 
