@@ -143,27 +143,41 @@ only anonymized metadata in a local 500-event ring buffer.
 
 ## Install & use
 
-Works the same on **macOS, Windows, and Linux** — it's a Chromium extension, so the OS doesn't
-change how you use it. Full step-by-step guide: **[INSTALL.md](INSTALL.md)**.
+> **The same steps work on macOS, Windows, and Linux.** SENTINEL is a Chromium browser
+> extension, so your operating system doesn't change anything below.
 
-**Prerequisites (same on every OS):** [Node.js 18+](https://nodejs.org/en/download) ·
-[Git](https://git-scm.com/downloads) · a Chromium browser —
-[Chrome](https://www.google.com/chrome/), or the **Edge** that ships with Windows.
+### ⚡ Option 1 — Just try it (0 minutes, no install)
+
+Open the **[live demo](https://alirizzzv.github.io/SENTINEL/demo/)** in any browser, paste a
+fake secret like `AKIAIOSFODNN7EXAMPLE`, and watch SENTINEL catch it. Best way to see it in
+action in 10 seconds.
+
+### 🧩 Option 2 — Install the real extension (~3 minutes)
+
+**Before you start, install these** (same on every OS):
+[Node.js 18+](https://nodejs.org/en/download) · [Git](https://git-scm.com/downloads) · a
+Chromium browser ([Chrome](https://www.google.com/chrome/), or the **Edge** already on Windows).
+
+**Step 1 — Get the code and build it.** Open Terminal (Mac) or PowerShell (Windows) and run:
 
 ```bash
 git clone https://github.com/alirizzzv/SENTINEL.git
-cd SENTINEL && npm install && npm run build
+cd SENTINEL
+npm install
+npm run build
 ```
 
-These three commands are byte-for-byte identical on Mac and Windows. Then load the built
-`extension/` folder (also identical on both):
+**Step 2 — Load it into your browser:**
 
-- **Chrome:** open `chrome://extensions` &nbsp;·&nbsp; **Edge (Windows default):** open `edge://extensions`
-- Toggle **Developer mode** on → click **Load unpacked** → select the **`extension/`** folder.
+1. Open your browser's extensions page: `chrome://extensions` (Chrome) or `edge://extensions` (Edge).
+2. Turn on **Developer mode** (toggle in the top-right on Chrome, left sidebar on Edge).
+3. Click **Load unpacked** and select the **`extension`** folder inside the project you just cloned.
 
-Open an LLM, type a prompt with `AKIAIOSFODNN7EXAMPLE`, press Enter — the modal appears.
+**Step 3 — Use it.** Open [ChatGPT](https://chatgpt.com), [Claude](https://claude.ai), or
+[Gemini](https://gemini.google.com), type a prompt containing `AKIAIOSFODNN7EXAMPLE`, and press
+Enter — SENTINEL's modal appears before anything is sent.
 
-> No install? Try the **[live demo](https://alirizzzv.github.io/SENTINEL/demo/)** in any browser.
+👉 Stuck on any step? The **[full illustrated guide is in INSTALL.md](INSTALL.md)**.
 
 ## Tech stack
 
