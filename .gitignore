@@ -22,6 +22,8 @@ coverage/
 .DS_Store
 .idea/
 .vscode/
+.claude/
+.cursor/
 *.log
 
 # Extension packaging
