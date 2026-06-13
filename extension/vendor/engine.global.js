@@ -153,6 +153,8 @@ var SENTINEL = (() => {
     PRIVATE_KEY: { label: "Private Key", color: "#f74f4f" },
     DB_CREDENTIALS: { label: "Database Credentials", color: "#f74f4f" },
     SERVICE_TOKEN: { label: "Service Token", color: "#f5a623" },
+    HIGH_ENTROPY_SECRET: { label: "High-Entropy Secret", color: "#f74f4f" },
+    ENCODED_SECRET: { label: "Encoded Secret", color: "#f74f4f" },
     CREDIT_CARD: { label: "Credit Card", color: "#f5a623" },
     GOV_ID: { label: "Government ID", color: "#f5a623" },
     PERSONAL_CONTACT: { label: "Personal Contact", color: "#4f8ef7" }
@@ -449,6 +451,22 @@ var SENTINEL = (() => {
     };
   }
 
+  // src/engine/normalizer.js
+  var LEET = { "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s" };
+  function normalizeForMatching(text) {
+    if (typeof text !== "string" || text.length === 0) return "";
+    let s = text;
+    try {
+      s = s.normalize("NFKC");
+    } catch {
+    }
+    s = s.replace(/[​-‏‪-‮⁠﻿]/g, "");
+    s = s.toLowerCase();
+    s = s.replace(/[013457@$]/g, (c) => LEET[c] ?? c);
+    s = s.replace(/\b(?:[a-z0-9][\s._-]){2,}[a-z0-9]\b/g, (m) => m.replace(/[\s._-]/g, ""));
+    return s;
+  }
+
   // src/engine/injection-detector.js
   var INJECTION_PHRASES = [
     "ignore previous instructions",
@@ -491,7 +509,7 @@ var SENTINEL = (() => {
   function detectInjection(text, opts = {}) {
     const sensitivity = opts.sensitivity || "MEDIUM";
     const threshold = THRESHOLD[sensitivity] ?? THRESHOLD.MEDIUM;
-    const lower = text.toLowerCase();
+    const lower = normalizeForMatching(text);
     const signals = [];
     let confidence = 0;
     const matches = PHRASE_AUTOMATON.search(lower);
@@ -512,6 +530,10 @@ var SENTINEL = (() => {
       confidence += 0.25;
       signals.push("assigns the model a new role/persona");
     }
+    if (/\b(print|reveal|show|repeat|output|tell me|give me|dump|leak)\b[\s\S]{0,30}\b(system prompt|your instructions|your guidelines|your rules|your prompt|initial prompt)\b/.test(lower)) {
+      confidence += 0.35;
+      signals.push("attempts to extract the model's own instructions");
+    }
     if (/(i|1|l)\s*g\s*n\s*[o0]\s*r\s*e|[i1]nstruct[i1]?[o0]ns?/i.test(text) && !/\binstructions?\b/i.test(lower)) {
       confidence += 0.2;
       signals.push("possible obfuscated trigger word");
@@ -531,6 +553,86 @@ var SENTINEL = (() => {
       matchedPhrases,
       threshold
     };
+  }
+
+  // src/engine/entropy-detector.js
+  var TRIGGER = "(?:secret|token|key|pass(?:word|wd)?|pwd|cred(?:ential)?s?|auth|api[_-]?key|access)";
+  var VALUE = "[A-Za-z0-9+/=_-]";
+  function shannonEntropy(str) {
+    if (!str) return 0;
+    const freq = /* @__PURE__ */ new Map();
+    for (const ch of str) freq.set(ch, (freq.get(ch) || 0) + 1);
+    let h = 0;
+    const n = str.length;
+    for (const c of freq.values()) {
+      const p = c / n;
+      h -= p * Math.log2(p);
+    }
+    return h;
+  }
+  var MIN_LEN = 20;
+  var MAX_LEN = 200;
+  var ASSIGN_ENTROPY = 4;
+  var NEARBY_ENTROPY = 4.2;
+  function detectHighEntropy(text) {
+    if (typeof text !== "string" || text.length < MIN_LEN) return [];
+    const out = [];
+    const seen = /* @__PURE__ */ new Set();
+    const add = (value, start, entropy) => {
+      if (seen.has(start)) return;
+      seen.add(start);
+      out.push({ start, end: start + value.length, value, entropy });
+    };
+    const assign = new RegExp(`[A-Za-z_][A-Za-z0-9_-]{0,64}\\s*[:=]\\s*['"]?(${VALUE}{${MIN_LEN},${MAX_LEN}})`, "g");
+    for (let m; m = assign.exec(text); ) {
+      const value = m[1];
+      const start = m.index + m[0].indexOf(value);
+      const h = shannonEntropy(value);
+      if (h >= ASSIGN_ENTROPY) add(value, start, h);
+    }
+    const nearby = new RegExp(`\\b${TRIGGER}\\b[\\s\\S]{0,24}?\\b(${VALUE}{${MIN_LEN},${MAX_LEN}})`, "gi");
+    for (let m; m = nearby.exec(text); ) {
+      const value = m[1];
+      const start = m.index + m[0].lastIndexOf(value);
+      const h = shannonEntropy(value);
+      if (h >= NEARBY_ENTROPY) add(value, start, h);
+    }
+    return out;
+  }
+
+  // src/engine/decode-scan.js
+  var HIGH_VALUE = PATTERNS.filter((p) => p.score >= 70 && !p.alwaysScan);
+  function fromBase64(b64) {
+    try {
+      if (typeof atob === "function") return atob(b64);
+      if (typeof Buffer !== "undefined") return Buffer.from(b64, "base64").toString("binary");
+    } catch {
+    }
+    return "";
+  }
+  function containsSecret(decoded) {
+    if (!decoded) return false;
+    for (const p of HIGH_VALUE) {
+      p.regex.lastIndex = 0;
+      const m = p.regex.exec(decoded);
+      if (m && (!p.validate || p.validate(m[0]))) return true;
+    }
+    return false;
+  }
+  function decodeAndScan(text) {
+    if (typeof text !== "string" || text.length < 24) return [];
+    const out = [];
+    const re = /\b[A-Za-z0-9+/]{20,512}={0,2}/g;
+    for (let m; m = re.exec(text); ) {
+      const blob = m[0];
+      if (blob.length % 4 !== 0) continue;
+      const decoded = fromBase64(blob);
+      if (!decoded || !/^[\x20-\x7e\s]+$/.test(decoded)) continue;
+      if (containsSecret(decoded)) {
+        out.push({ start: m.index, end: m.index + blob.length, value: blob });
+      }
+    }
+    return out;
   }
 
   // src/engine/redactor.js
@@ -570,6 +672,8 @@ var SENTINEL = (() => {
   }
 
   // src/engine/index.js
+  var ENTROPY_SCORE = 70;
+  var ENCODED_SCORE = 85;
   var now = () => typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
   var DetectionEngine = class {
     /** @param {import('./pattern-dictionary.js').Pattern[]} patterns */
@@ -658,6 +762,35 @@ var SENTINEL = (() => {
         }
         threatsById.get(m.id).count += 1;
       }
+      const overlapsExisting = (s) => spans.some((e) => s.start < e.end && e.start < s.end);
+      const addExtra = (matches, id, placeholder, score, category, label) => {
+        let count = 0;
+        for (const m of matches) {
+          if (overlapsExisting(m)) continue;
+          spans.push({ start: m.start, end: m.end, placeholder, score });
+          count += 1;
+        }
+        if (count > 0) {
+          patternMatchCount += count;
+          threatsById.set(id, { id, category, label, score, count });
+        }
+      };
+      addExtra(
+        detectHighEntropy(text),
+        "HIGH_ENTROPY_SECRET",
+        "[SECRET]",
+        ENTROPY_SCORE,
+        "HIGH_ENTROPY_SECRET",
+        CATEGORIES.HIGH_ENTROPY_SECRET.label
+      );
+      addExtra(
+        decodeAndScan(text),
+        "ENCODED_SECRET",
+        "[ENCODED_SECRET]",
+        ENCODED_SCORE,
+        "ENCODED_SECRET",
+        CATEGORIES.ENCODED_SECRET.label
+      );
       const threats = [...threatsById.values()];
       const injection = detectInjection(text, opts);
       if (injection.detected) {

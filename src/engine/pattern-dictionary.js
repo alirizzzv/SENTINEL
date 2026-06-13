@@ -14,8 +14,8 @@
  * literal anchor, so they are marked `alwaysScan: true` and their regex runs every
  * time. There are only a handful of these and they are cheap.
  *
- * 8 categories, 25+ patterns. Prompt-injection lives in injection-detector.js but
- * its category is declared here so scoring/UI share one source of truth.
+ * Prompt-injection, high-entropy and encoded-secret categories live in their own
+ * detectors but are declared here so scoring/UI share one source of truth.
  */
 
 /** Category-level metadata: severity color + human label. */
@@ -25,6 +25,8 @@ export const CATEGORIES = {
   PRIVATE_KEY: { label: 'Private Key', color: '#f74f4f' },
   DB_CREDENTIALS: { label: 'Database Credentials', color: '#f74f4f' },
   SERVICE_TOKEN: { label: 'Service Token', color: '#f5a623' },
+  HIGH_ENTROPY_SECRET: { label: 'High-Entropy Secret', color: '#f74f4f' },
+  ENCODED_SECRET: { label: 'Encoded Secret', color: '#f74f4f' },
   CREDIT_CARD: { label: 'Credit Card', color: '#f5a623' },
   GOV_ID: { label: 'Government ID', color: '#f5a623' },
   PERSONAL_CONTACT: { label: 'Personal Contact', color: '#4f8ef7' },

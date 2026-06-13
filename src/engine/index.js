@@ -31,7 +31,13 @@ import { AhoCorasick } from './aho-corasick.js';
 import { PATTERNS, CATEGORIES } from './pattern-dictionary.js';
 import { scoreThreats, riskLevel, RISK } from './risk-scorer.js';
 import { detectInjection, INJECTION_SCORE } from './injection-detector.js';
+import { detectHighEntropy } from './entropy-detector.js';
+import { decodeAndScan } from './decode-scan.js';
 import { redact } from './redactor.js';
+
+/** Severity of the prefix-less detectors (real credentials, slightly lower certainty). */
+const ENTROPY_SCORE = 70;
+const ENCODED_SCORE = 85;
 
 const now = () =>
   typeof performance !== 'undefined' && performance.now
@@ -152,6 +158,30 @@ export class DetectionEngine {
       }
       threatsById.get(m.id).count += 1;
     }
+
+    // 3b. Prefix-less detection (entropy + encoded). These catch what the format
+    // patterns structurally cannot: renamed/custom secrets and base64-hidden keys.
+    // A span is dropped if a precise pattern already covers it (no double-flagging).
+    const overlapsExisting = (s) =>
+      spans.some((e) => s.start < e.end && e.start < s.end);
+
+    const addExtra = (matches, id, placeholder, score, category, label) => {
+      let count = 0;
+      for (const m of matches) {
+        if (overlapsExisting(m)) continue;
+        spans.push({ start: m.start, end: m.end, placeholder, score });
+        count += 1;
+      }
+      if (count > 0) {
+        patternMatchCount += count;
+        threatsById.set(id, { id, category, label, score, count });
+      }
+    };
+
+    addExtra(detectHighEntropy(text), 'HIGH_ENTROPY_SECRET', '[SECRET]', ENTROPY_SCORE,
+      'HIGH_ENTROPY_SECRET', CATEGORIES.HIGH_ENTROPY_SECRET.label);
+    addExtra(decodeAndScan(text), 'ENCODED_SECRET', '[ENCODED_SECRET]', ENCODED_SCORE,
+      'ENCODED_SECRET', CATEGORIES.ENCODED_SECRET.label);
 
     const threats = [...threatsById.values()];
 
